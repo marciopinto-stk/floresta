@@ -1,0 +1,22 @@
+@import "tailwindcss";
+@import "@tailwindcss/typography";
+
+@theme {
+    /* Fonts */
+    --font-*: initial;
+    --font-sans: Plus Jakarta Sans, sans-serif;
+    /* Default colors */
+    --color-primary: oklch(65.33% 0.184 266.79);
+    --color-secondary: oklch(76.32% 0.139 237.20);
+    --color-info: oklch(68.98% 0.165 257.10);
+    --color-success: oklch(80.48% 0.150 174.63);
+    --color-warning: oklch(80.94% 0.165 74.03);
+    --color-error: oklch(74.75% 0.144 35.82);
+    --color-dark: oklch(27.84% 0.027 257.53);
+    /* Custom theme Radius */
+    --radius-sm: 4px;
+    --radius-md: 7px;
+    /* Custom Shadow */
+    --shadow-md: rgba(145, 158, 171, 0.2) 0px 0px 2px 0px, rgba(145, 158, 171, 0.12) 0px 12px 24px -4px;
+    --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}

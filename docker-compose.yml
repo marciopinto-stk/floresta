@@ -1,0 +1,56 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+    container_name: floresta
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./app:/usr/src/app
+      - /usr/src/app/node_modules
+    command: sh -lc "npm install -yqq && npm run dev"
+  
+  api:
+    image: mamura/php-dev:latest
+    container_name: api-floresta
+    healthcheck:
+      disable: true
+    labels:
+      - "traefik.enable=true" 
+    volumes:
+      - ./api:/src
+    environment:
+      - PROJECT_WEBROOT=/src/public
+    ports:
+      # - "80:80"
+      - "5173:5173" # Vite
+
+  mysql:
+    image: mysql:8.0
+    container_name: floresta-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: floresta
+      MYSQL_USER: floresta
+      MYSQL_PASSWORD: floresta
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_floresta:/var/lib/mysql
+
+  redis:
+    image: redis:7-alpine
+    container_name: floresta-redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+
+volumes:
+  mysql_floresta:
+ 
+networks:
+  default:
+      name: dev-network
+      external: true
