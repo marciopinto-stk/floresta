@@ -47,8 +47,36 @@ services:
       - "6379:6379"
     command: ["redis-server", "--appendonly", "yes"]
 
+  mongdb:
+    image: mongo:7
+    container_name: floresta-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: floresta
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_floresta:/data/db
+
+  mongo-express:
+    image: mongo-express:1.0.2
+    container_name: floresta-mongo-express
+    restart: unless-stopped
+    depends_on:
+      - mongdb
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: root
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_BASICAUTH: "false"
+    ports:
+      - "8081:8081"
+
 volumes:
   mysql_floresta:
+  mongodb_floresta:
  
 networks:
   default:

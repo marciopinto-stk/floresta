@@ -3,8 +3,6 @@
 @plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/forms";
 
-@import "./css/theme.css";
-@import "./css/sidebar.css";
 
 @theme {
   /* Fonts */
@@ -24,50 +22,22 @@
     /* Custom Shadow */
     --shadow-md: rgba(145, 158, 171, 0.2) 0px 0px 2px 0px, rgba(145, 158, 171, 0.12) 0px 12px 24px -4px;
     --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-}
+    /* tokens semânticos */
+    --ds-bg: oklch(98% 0 0);
+    --ds-fg: var(--color-dark);
 
-@utility container {
-    @apply max-w-[1200px] mx-auto px-5;
-}
+    --ds-card: oklch(100% 0 0);
+    --ds-border: oklch(90% 0.01 257.53);
 
-@utility card {
-    @apply rounded-md shadow-md bg-white relative;
-}
+    --ds-primary: var(--color-primary);
+    --ds-primary-fg: oklch(99% 0 0);
 
-@utility card-body {
-    @apply p-6;
-}
+    --ds-secondary: var(--color-secondary);
+    --ds-secondary-fg: var(--ds-fg);
 
-@utility hs-dropdown-menu {
-    @apply shadow-md bg-white relative rounded-md;
-}
+    --ds-danger: var(--color-error);
+    --ds-danger-fg: oklch(99% 0 0);
 
-@utility btn {
-    @apply rounded-md bg-primary text-white text-sm py-2 px-4 text-center;
-}
-
-@utility btn-outline-primary {
-    @apply rounded-md border border-primary text-primary text-sm py-2 px-4 text-center;
-}
-
-@utility activemenu {
-    @apply bg-primary text-white hover:bg-primary hover:text-white dark:hover:bg-primary dark:hover:text-white
-}
-
-@utility dropdown-menu-link {
-    @apply w-full flex cursor-pointer items-center text-sm hover:bg-primary/10 hover:text-primary
-}
-
-@utility dropdown-menu-active {
-    @apply bg-primary dark:bg-primary text-white hover:bg-primary hover:text-white dark:hover:bg-primary dark:hover:text-white
-}
-
-@utility dropdown-submenu-link {
-    @apply w-full py-2 flex gap-2 items-center text-sm hover:text-primary dark:hover:text-primary
-}
-
-@layer components {
-    #sidebarnav .hs-accordion-content {
-        @apply w-full overflow-hidden transition-[height] duration-300 hidden
-    }
+    --ds-radius: var(--radius-md);
+    --ds-shadow: var(--shadow-md);
 }
