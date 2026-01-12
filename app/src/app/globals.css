@@ -12,15 +12,18 @@
     --color-primary: oklch(65.33% 0.184 266.79);
     --color-secondary: oklch(76.32% 0.139 237.20);
     --color-info: oklch(68.98% 0.165 257.10);
+    --color-lightinfo: oklch(96.13% 0.017 256.28);
     --color-success: oklch(80.48% 0.150 174.63);
     --color-warning: oklch(80.94% 0.165 74.03);
     --color-error: oklch(74.75% 0.144 35.82);
     --color-dark: oklch(27.84% 0.027 257.53);
+    --color-bodytext: oklch(52.16% 0.047 260.80);
+    --color-bordergray: oklch(92.03% 0.015 260.73);
     /* Custom theme Radius */
     --radius-sm: 4px;
     --radius-md: 7px;
     /* Custom Shadow */
-    --shadow-md: rgba(145, 158, 171, 0.2) 0px 0px 2px 0px, rgba(145, 158, 171, 0.12) 0px 12px 24px -4px;
+    --shadow-md: 0px 0px 15px 0px rgba(0,0,0,0.08); 
     --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     /* tokens semânticos */
     --ds-bg: oklch(98% 0 0);
@@ -41,3 +44,83 @@
     --ds-radius: var(--radius-md);
     --ds-shadow: var(--shadow-md);
 }
+
+@layer components {
+  .card {
+    @apply 
+      relative
+      w-full
+      break-words
+      shadow-[var(--shadow-md)]
+      bg-white
+      rounded-[var(--radius-md)];
+  }
+
+  .card-sm {
+    padding: 1rem;
+  }
+
+  .card-lg {
+    padding: 2rem;
+  }
+
+  .card-flat {
+    --tw-shadow: none;
+  }
+
+  .card-title {
+    @apply text-lg font-semibold text-slate-900;
+  }
+
+
+  .card-subtitle {
+    @apply text-sm text-slate-500;
+  }
+}
+
+/* BOTÕES */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center
+           text-center capitalize
+           transition-colors duration-150
+           focus:outline-none focus:ring-2 focus:ring-offset-2;
+    padding-block: calc(0.25rem * 2);
+    padding-inline: calc(0.25rem * 4);
+    border-radius: var(--radius-md);
+  }
+
+  /* Primary */
+  .btn-primary {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-primary-hover, var(--color-primary));
+  }
+
+  .btn-primary:focus {
+    --tw-ring-color: var(--color-primary);
+  }
+}
+
+/* FORMS */
+@layer components {
+  .form-control {
+    @apply w-full bg-transparent
+           focus:outline-none
+           focus:border-slate-100
+           transition-colors duration-150;
+
+    border-color: var(--color-bordergray);
+    border-radius: var(--radius-md);
+
+    font-size: var(--text-sm);
+
+    padding-block: calc(var(--spacing) * 2);
+    padding-inline: calc(var(--spacing) * 3);
+  }
+
+}
+

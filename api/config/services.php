@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'sensrit' => [
+        'base_url'  => env('SENSRIT_BASE_URL', 'https://drconsulta.sensrit.com.br'),
+        'token'     => env('SENSRIT_TOKEN'),
+        'timeout'   => (int) env('SENSRIT_TIMEOUT', 20),
+    ]
+
 ];

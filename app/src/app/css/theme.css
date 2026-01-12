@@ -90,6 +90,7 @@ utilities;
         --color-primary: oklch(65.33% 0.184 266.79);
         --color-secondary: oklch(76.32% 0.139 237.20);
         --color-info: oklch(68.98% 0.165 257.10);
+        --color-lightinfo: oklch(96.13% 0.017 256.28);
         --color-success: oklch(80.48% 0.150 174.63);
         --color-warning: oklch(80.94% 0.165 74.03);
         --color-error: oklch(74.75% 0.144 35.82);
@@ -298,14 +299,7 @@ utilities;
 }
 
 @layer utilities {
-    .card,
-    .hs-dropdown-menu {
-        background-color: var(--color-white);
-        border-radius: var(--radius-md);
-        position: relative;
-        --tw-shadow: var(--tw-shadow-color, rgba(145, 158, 171, .2)) 0px 0px 2px 0px, var(--tw-shadow-color, rgba(145, 158, 171, .12)) 0px 12px 24px -4px;
-        box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)
-    }
+    
     .absolute {
         position: absolute
     }
