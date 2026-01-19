@@ -47,7 +47,7 @@ services:
       - "6379:6379"
     command: ["redis-server", "--appendonly", "yes"]
 
-  mongdb:
+  mongodb:
     image: mongo:7
     container_name: floresta-mongodb
     restart: unless-stopped
@@ -65,7 +65,7 @@ services:
     container_name: floresta-mongo-express
     restart: unless-stopped
     depends_on:
-      - mongdb
+      - mongodb
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: root

@@ -1,6 +1,7 @@
 "use client"
 
 import { Icon } from "@iconify/react";
+import Link from "next/dist/client/link";
 import React, { useEffect, useId, useRef, useState } from "react";
 
 type Notification = {
@@ -200,6 +201,7 @@ export default function Topbar ({
               </div>
 
               <div className="py-1">
+                
                <button
                   type="button"
                   role="menuitem"
@@ -209,15 +211,10 @@ export default function Topbar ({
                   Meu perfil
                 </button> 
 
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="w-full px-4 py-2 text-left text-sm text-black/70 hover:bg-black/5"
-                  onClick={() => setUserOpen(false)}
-                >
-                  Configurações
-                </button>
-
+                <div className="w-full px-4 py-2 text-left text-sm text-black/70 hover:bg-black/5">
+                  <Link href="/settings" className="">Configurações</Link>
+                </div>
+                
                 <div className="my-1 border-t border-black/10" />
 
                 <button

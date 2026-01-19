@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface Props {
   title: string;
@@ -18,9 +18,11 @@ const headerImages = [
 ]
 
 export default function PageHeader({ title, subtitle }: Props) {
-  const image = useMemo(() => {
+  const [image, setImage] = useState<string | null>("/images/animals/dog.png");
+
+  useEffect(() => {
     const index = Math.floor(Math.random() * headerImages.length);
-    return headerImages[index];
+    setImage(headerImages[index]);
   }, []);
 
   return(

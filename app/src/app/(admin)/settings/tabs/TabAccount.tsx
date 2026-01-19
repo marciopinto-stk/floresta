@@ -157,6 +157,11 @@ export default function TabAccount()
           </div>
         </div>
       </div>
+
+      <div className="flex gap-3 justify-end mt-6">
+          <button className="btn btn-primary">Salvar</button>
+          <button className="btn btn-light-error">Cancelar</button>
+        </div>
     </div>
   );
 }

@@ -3,6 +3,11 @@
 @plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/forms";
 
+body {
+    color: var(--color-bodytext);
+    font-size: var(--text-sm);
+    line-height: var(--tw-leading, var(--text-sm--line-height));
+}
 
 @theme {
   /* Fonts */
@@ -10,21 +15,28 @@
     --font-sans: Plus Jakarta Sans, sans-serif;
     /* Default colors */
     --color-primary: oklch(65.33% 0.184 266.79);
+    --color-primary-hover: oklch(58.11% 0.161 266.76);
     --color-secondary: oklch(76.32% 0.139 237.20);
     --color-info: oklch(68.98% 0.165 257.10);
     --color-lightinfo: oklch(96.13% 0.017 256.28);
     --color-success: oklch(80.48% 0.150 174.63);
     --color-warning: oklch(80.94% 0.165 74.03);
     --color-error: oklch(74.75% 0.144 35.82);
+    --color-lighterror: oklch(95.74% 0.019 38.15);
     --color-dark: oklch(27.84% 0.027 257.53);
     --color-bodytext: oklch(52.16% 0.047 260.80);
     --color-bordergray: oklch(92.03% 0.015 260.73);
+    --color-lightgray: oklch(98.07% 0.005 247.88);
+    --color-darkgrey: oklch(45.04% 0.047 259.98);
     /* Custom theme Radius */
     --radius-sm: 4px;
     --radius-md: 7px;
     /* Custom Shadow */
     --shadow-md: 0px 0px 15px 0px rgba(0,0,0,0.08); 
     --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+
+    --text-sm: 0.875rem;
+    --text-sm--line-height: 1.42857;
     /* tokens semânticos */
     --ds-bg: oklch(98% 0 0);
     --ds-fg: var(--color-dark);
@@ -100,9 +112,29 @@
     background-color: var(--color-primary-hover, var(--color-primary));
   }
 
-  .btn-primary:focus {
-    --tw-ring-color: var(--color-primary);
+  /* Light error */
+  .btn-light-error {
+    background-color: var(--color-lighterror);
+    color: var(--color-error);
   }
+
+  .btn-light-error:hover {
+    background-color: var(--color-error);
+    color: #fff;
+  }
+
+  /* Date picker */
+  .btn-datepicker {
+    background-color: var(--color-lightinfo);
+    color: var(--color-slate);
+    
+  }
+
+  .btn-datepicker:hover {
+    background-color: var(--color-info);
+    color: #fff;
+  }
+  
 }
 
 /* FORMS */

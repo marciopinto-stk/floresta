@@ -1,5 +1,6 @@
 "use client"
 
+import { SensritProvider } from "@/providers/SensritProvider";
 import Sidebar from "@/shared/layout/Sidebars/Sidebar";
 import Topbar from "@/shared/layout/Topbars/Topbar";
 import { ReactNode, useEffect, useState } from "react";
@@ -24,22 +25,24 @@ export default function AdminLayout({ children }: {children: ReactNode})
   }, [sidebarOpen]);
 
   return (
-    <div className="min-h-dvh">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      
-      <div className="xl:pl-[270px] w-full">
-        <Topbar
-          onOpenSidebar={() => setSidebarOpen(true)}
-          user={{ name: "Márcio Pinto", email: "marcio@empresa.com" }}
-          notifications={[
-            { id: "1", title: "Novo chamado aberto", subtitle: "R14253" },
-          ]}
-        />
+    <SensritProvider intervalMs={60_000}>
+      <div className="min-h-dvh">
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         
-        <main className="w-full p-6">
-          {children}
-        </main>
+        <div className="xl:pl-[270px] w-full">
+          <Topbar
+            onOpenSidebar={() => setSidebarOpen(true)}
+            user={{ name: "Márcio Pinto", email: "marcio@empresa.com" }}
+            notifications={[
+              { id: "1", title: "Novo chamado aberto", subtitle: "R14253" },
+            ]}
+          />
+          
+          <main className="w-full p-6">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </SensritProvider>
   );
 }

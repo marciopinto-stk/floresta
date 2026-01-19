@@ -6,25 +6,29 @@ use App\Modules\Sensrit\Domain\Contracts\Repositories\SensritTokenRepositoryCont
 use App\Modules\Sensrit\Infrastructure\Persistence\Mongo\Models\MongoSensritSetting;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 
 class MongoSensritTokenRepository implements SensritTokenRepositoryContract
 {
     private const KEY = 'sensrit:token';
 
+    private function collection()
+    {
+        return DB::connection('mongodb')
+            ->getMongoDB()
+            ->selectCollection('sensrit_settings');
+    }
+
     public function getToken(): ?string
     {
-        $doc = MongoSensritSetting::query()->find(self::KEY);
-        if (!$doc) {
-            return null;
-        }
+        $doc = $this->collection()->findOne(['_id' => self::KEY]);
 
-        $enc = $doc->token_enc ?? null;
-        if (!$enc) {
+        if (!$doc || empty($doc['token_enc'])) {
             return null;
         }
 
         try {
-            return Crypt::decryptString($enc);
+            return Crypt::decryptString((string) $doc['token_enc']);
         } catch (\Throwable) {
             return null;
         }
@@ -34,12 +38,18 @@ class MongoSensritTokenRepository implements SensritTokenRepositoryContract
     {
         $now = Carbon::now('UTC')->toIso8601String();
 
-        MongoSensritSetting::query()->updateOrCreate(
+        MongoSensritSetting::raw(fn($c) => $c->updateOne(
             ['_id' => self::KEY],
             [
-                'token_enc' => Crypt::encryptString($token),
-                'updated_at_iso' => $now,
-            ]
-        );
+                '$set' => [
+                    'token_enc'      => Crypt::encryptString($token),
+                    'updated_at_iso' => $now,
+                ],
+                '$setOnInsert'  => [
+                    '_id'       => self::KEY,
+                ],
+            ],
+            ['upsert' => true]
+        ));
     }
 }

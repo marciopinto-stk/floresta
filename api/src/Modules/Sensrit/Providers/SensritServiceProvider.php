@@ -10,6 +10,7 @@ use App\Modules\Sensrit\Infrastructure\Clients\Http\SensritTicketsHttpClient;
 use App\Modules\Sensrit\Infrastructure\Persistence\Mongo\Repositories\MongoSensritTokenRepository;
 use App\Modules\Sensrit\Infrastructure\Persistence\Mongo\Repositories\MongoSyncStateRepository;
 use App\Modules\Sensrit\Infrastructure\Persistence\Mongo\Repositories\MongoTicketRawRepository;
+use App\Modules\Sensrit\Interface\Console\Commands\RebuildTicketsExtractedCommand;
 use App\Modules\Sensrit\Interface\Console\Commands\SyncSensritTicketsRawCommand;
 use Illuminate\Support\ServiceProvider;
 
@@ -36,6 +37,7 @@ class SensritServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 SyncSensritTicketsRawCommand::class,
+                RebuildTicketsExtractedCommand::class,
             ]);
         }
     }
