@@ -1,5 +1,7 @@
 "use client"
 
+import OpenByDayInMonth from "@/shared/components/dashboard/OpenByDayInMonth";
+import OpenTicketsByCategoryCard from "@/shared/components/dashboard/OpenTicketsByCategoryCard";
 import OpenVsClosedCard from "@/shared/components/dashboard/OpenVsClosedCard";
 
 export default function Page()
@@ -11,12 +13,19 @@ export default function Page()
       </div>
 
       <div className="lg:col-span-4 md:col-span-12 sm:col-span-12 col-span-12">
-        <div className="card h-full">outro card</div>
-      </div>
-      
-    </div>
-    
-      
+        <div className="h-full">
+          <OpenTicketsByCategoryCard
+            total={363}
+            changePct={0.09}
+            data={[
+              { name: "categoria 1", value: 210 },
+              { name: "categoria 2", value: 153 },
+            ]}
+          />
 
+          <OpenByDayInMonth />
+        </div>
+      </div>    
+    </div>
   );
 }

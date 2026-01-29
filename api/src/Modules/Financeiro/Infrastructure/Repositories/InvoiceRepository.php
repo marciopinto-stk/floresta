@@ -73,6 +73,7 @@ SQL;
             ->limit($input->limit)
 
             ->get();
+            
 
         return $rows->map(fn ($row) => NotaRecepcaoDTO::fromRow($row))->all();
     }

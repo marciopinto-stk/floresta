@@ -11,5 +11,7 @@ Route::middleware('api')->prefix('v1')->group(function () {
 
         // Dashboard
         Route::get('tickets/open-vs-closed', [TicketsDashboardController::class, 'openVsClosed']);
+        Route::get('tickets/open-by-category', [TicketsDashboardController::class, 'openByCategory']);
+        Route::get('tickets/opened-by-day', [TicketsDashboardController::class, 'openedByDayInMonth']);
     });
 });

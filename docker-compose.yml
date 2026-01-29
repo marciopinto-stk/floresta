@@ -26,6 +26,19 @@ services:
       # - "80:80"
       - "5173:5173" # Vite
 
+  scheduler:
+    image: mamura/php-dev:latest
+    container_name: floresta-scheduler
+    volumes:
+      - ./api:/var/www/html
+    working_dir: /var/www/html
+    command: >
+      sh -c "while true; do
+        php artisan schedule:run;
+        sleep 60;
+      done"
+    depends_on:
+      - api
   mysql:
     image: mysql:8.0
     container_name: floresta-mysql
