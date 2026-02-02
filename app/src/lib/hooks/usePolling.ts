@@ -1,8 +1,12 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef } from "react";
 
-export function usePolling(fn: () => void | Promise<void>, intervalMs: number, enabled: boolean) {
+export function usePolling<T = void>(
+  fn: () => T | Promise<T>,
+  intervalMs: number,
+  enabled: boolean,
+) {
   const fnRef = useRef(fn);
   fnRef.current = fn;
 
