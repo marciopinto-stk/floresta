@@ -1,23 +1,29 @@
-"use client"
+"use client";
 
 import { api } from "@/lib/api";
 import { useSensritStatus } from "@/providers/SensritProvider";
 import { Modal } from "@/shared/layout/Modals";
 import { Icon } from "@iconify/react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 type TokenUpdateResponse = {
   success: boolean;
   message?: string;
 };
 
-export default function TabSecurity() {
-  const {status, message, refresh} = useSensritStatus();
-  const [modalOpen, setModalOpen] = useState(false);
-  const [token, setToken]         = useState("");
-  const [localError, setLocalError]   = useState<string>("");
+const PLUG_CLASSES_BY_STATUS: Record<string, string> = {
+  valid: "text-blue-600",
+  invalid: "text-red-600",
+  error: "text-red-600",
+  checking: "text-yellow-600",
+  default: "text-gray-600",
+};
 
-  
+export default function TabSecurity() {
+  const { status, refresh } = useSensritStatus();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [token, setToken] = useState("");
+  const [localError, setLocalError] = useState<string>("");
 
   function openModal() {
     setLocalError("");
@@ -36,60 +42,61 @@ export default function TabSecurity() {
     setLocalError("");
 
     try {
-      const saved = await api.post<TokenUpdateResponse>("/sensrit/token", { token: cleaned });
+      const saved = await api.post<TokenUpdateResponse>("/sensrit/token", {
+        token: cleaned,
+      });
 
       if (saved?.success === false) {
         setLocalError(saved.message || "Não foi possível salvar o token.");
         return;
       }
 
-      await refresh();
+      const { status: newStatus } = await refresh();
 
-      if (status == "valid") {
+      if (newStatus == "valid") {
         setModalOpen(false);
       }
-
     } catch (e) {
       setLocalError("Erro ao enviar/validar token. Tente novamente.");
     }
   }
 
-  const plugIcon = 
-    status === "invalid" || status === "error" 
-      ? "tabler:plug-connected-x" 
-      : "tabler:plug-connected";
+  const plugColorClass =
+    PLUG_CLASSES_BY_STATUS[status] || PLUG_CLASSES_BY_STATUS["default"];
 
-    const plugColorClass =
-    status === "valid"
-      ? "text-blue-600"
-      : status === "invalid" || status === "error"
-        ? "text-red-600"
-        : "text-red-600";
-
-  return(
+  return (
     <div id="tab-security">
       <div className="grid grid-cols-12 gap-6 items-stretch">
         <div className="lg:col-span-8 col-span-12">
           <div className="card h-full">
             <div className="p-8">
-              <h5 className="card-title">Intergrações</h5>
+              <h5 className="card-title">Integrações</h5>
               <div className="sm:flex gap-4 mt-3 mb-7">
                 <p className="sm:mb-0 mb-3">
                   Autenticação com sistemas terceiros
                 </p>
               </div>
               <ul className="mt-4 flex flex-col">
-                <li className="flex items-center justify-between border-t border-border dark:border-darkborder py-4">
+                <li className="flex items-center justify-between border-t border-border dark:border-darkborder border-gray-300 py-4">
                   <div>
                     <h5 className="text-base">Token Sensrit</h5>
-                    <p>Token para integração com Sensrit. Necessário para integração com os tickets de chamados</p>
+                    <p>
+                      Token para integração com Sensrit. Necessário para
+                      integração com os tickets de chamados
+                    </p>
                   </div>
 
                   {status === "invalid" && localError && (
                     <p className="mt-2 text-sm text-red-600">{localError}</p>
                   )}
 
-                  <button type="button" className="btn btn-primary w-fit" onClick={openModal}>Setup</button>
+                  <button
+                    type="button"
+                    className="btn btn-primary w-fit cursor-pointer"
+                    onClick={openModal}
+                  >
+                    Setup
+                  </button>
                 </li>
               </ul>
             </div>
@@ -101,16 +108,24 @@ export default function TabSecurity() {
             <div className="p-8">
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 min-w-12 rounded-md bg-[var(--color-lightgray)] dark:bg-[var(--color-lightgray)] flex items-center justify-center">
-                  <Icon icon={"tabler:http-connect"} className="text-primary text-2xl" />
+                  <Icon
+                    icon={"tabler:http-connect"}
+                    className="text-primary text-2xl"
+                  />
                 </div>
                 <h5 className="card-title m-0">Status</h5>
               </div>
 
               <div className="flex items-center justify-between mt-8">
                 <div className="flex items-center gap-4">
-                  <Icon icon={"tabler:plug-connected"} className={`text-2xl ${plugColorClass}`} />
+                  <Icon
+                    icon={"tabler:plug-connected"}
+                    className={`text-2xl ${plugColorClass}`}
+                  />
                   <div>
-                    <h5 className="text-base font-semibold text-[var(--color-dark)]">Sensrit</h5>
+                    <h5 className="text-base font-semibold text-[var(--color-dark)]">
+                      Sensrit
+                    </h5>
                     <p>
                       {status === "valid"
                         ? "Conectado"
@@ -142,9 +157,7 @@ export default function TabSecurity() {
           Cole seu token abaixo. Vamos validar no servidor antes de salvar.
         </p>
 
-        <label className="font-semibold mb-2 block">
-          Token
-        </label>
+        <label className="font-semibold mb-2 block">Token</label>
 
         <input
           type="text"
@@ -155,9 +168,7 @@ export default function TabSecurity() {
         />
 
         {localError && (
-          <p className="mt-3 text-sm text-red-600">
-            {localError}
-          </p>
+          <p className="mt-3 text-sm text-red-600">{localError}</p>
         )}
 
         <div className="mt-6 flex justify-end gap-3">
@@ -166,7 +177,7 @@ export default function TabSecurity() {
           </button>
 
           <button
-            className="btn btn-primary"
+            className="btn btn-primary cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
             onClick={handleSaveToken}
             disabled={status === "checking"}
           >

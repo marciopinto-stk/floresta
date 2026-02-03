@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { api } from "@/lib/api";
 import { usePolling } from "@/lib/hooks/usePolling";
@@ -10,7 +10,7 @@ type TokenValidateResponse = {
   hasToken: boolean;
   isValid: boolean;
   message?: string;
-}
+};
 
 type SensritRefreshResult = {
   status: SensritStatus;
@@ -35,24 +35,28 @@ export function SensritProvider({
   intervalMs: number;
   enabled?: boolean;
 }) {
-  const [status, setStatus]               = useState<SensritStatus>("unknown");
-  const [message, setMessage]             = useState("");
+  const [status, setStatus] = useState<SensritStatus>("unknown");
+  const [message, setMessage] = useState("");
   const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null);
 
   const refresh = async (): Promise<SensritRefreshResult> => {
-    setStatus((prev) => (prev === "unknown" ? "checking" : prev));
+    setStatus("checking");
 
     try {
-      const data = await api.get<TokenValidateResponse>("/sensrit/token/validate");
+      const data = await api.get<TokenValidateResponse>(
+        "/sensrit/token/validate",
+      );
 
       const nextStatus: SensritStatus = data.hasToken
-        ? (data.isValid ? "valid" : "invalid")
+        ? data.isValid
+          ? "valid"
+          : "invalid"
         : "unknown";
 
       const nextMessage =
         nextStatus === "valid" || nextStatus === "unknown"
           ? ""
-          : (data.message || "Token inválido");
+          : data.message || "Token inválido";
 
       setStatus(nextStatus);
       setMessage(nextMessage);
@@ -71,18 +75,21 @@ export function SensritProvider({
     }
   };
 
-  usePolling(refresh, intervalMs, enabled);
+  usePolling<SensritRefreshResult>(refresh, intervalMs, enabled);
 
   const value = useMemo(
     () => ({ status, message, lastCheckedAt, refresh }),
-    [status, message, lastCheckedAt]
+    [status, message, lastCheckedAt],
   );
 
-  return <SensritContext.Provider value={value}>{children}</SensritContext.Provider>;
+  return (
+    <SensritContext.Provider value={value}>{children}</SensritContext.Provider>
+  );
 }
 
 export function useSensritStatus() {
   const ctx = useContext(SensritContext);
-  if (!ctx) throw new Error("useSensritStatus must be used within SensritProvider");
+  if (!ctx)
+    throw new Error("useSensritStatus must be used within SensritProvider");
   return ctx;
 }
