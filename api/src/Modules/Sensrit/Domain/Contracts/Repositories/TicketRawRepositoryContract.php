@@ -13,5 +13,8 @@ interface TicketRawRepositoryContract
         array $extracted,
         string $payloadHash,
         string $source,
+        string $runId,
     ): string;
+
+    public function markTicketsNotSeenInRunAsOutOfList(string $runId): int;
 }

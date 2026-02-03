@@ -7,6 +7,8 @@ use App\Modules\Sensrit\Domain\Contracts\Repositories\SyncStateRepositoryContrac
 use App\Modules\Sensrit\Domain\Contracts\Repositories\TicketRawRepositoryContract;
 use App\Modules\Sensrit\Domain\Services\TicketRawHasher;
 use App\Modules\Sensrit\Domain\Services\TicketRawMapper;
+use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class SyncTicketsRawUseCase
 {
@@ -20,6 +22,8 @@ class SyncTicketsRawUseCase
 
     public function execute(SyncTicketsRawInput $input): SyncTicketsRawOutput
     {
+        $runId  = (string) Str::uuid();
+        $now    = Carbon::now('UTC')->toIso8601String();
         // Determina "since": CLI > estado salvo > fallback
         $since = $input->since ?: $this->syncState->getCursor('sensrit:tickets') ?: null;
 
@@ -58,6 +62,7 @@ class SyncTicketsRawUseCase
                 extracted: $doc['extracted'],
                 payloadHash: $hash,
                 source: 'sensrit',
+                runId: $runId,
             );
 
             // upsert retorna created|updated|ignored
@@ -66,6 +71,10 @@ class SyncTicketsRawUseCase
             else $ignored++;
         }
 
+        if (!$input->dryRun) {
+            $removed = $this->tickets->markTicketsNotSeenInRunAsOutOfList($runId);
+        }
+        
         if (!$input->dryRun && $maxDtUp) {
             $this->syncState->setCursor('sensrit:tickets', $maxDtUp);
         }

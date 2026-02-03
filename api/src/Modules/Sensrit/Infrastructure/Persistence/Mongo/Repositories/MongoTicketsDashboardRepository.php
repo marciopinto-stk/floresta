@@ -10,12 +10,12 @@ use MongoDB\BSON\UTCDateTime;
 
 final class MongoTicketsDashboardRepository implements TicketsDashboardRepositoryContract
 {
-    public function countOpenByCategory(\Carbon\Carbon $start, \Carbon\Carbon $end): array
+    public function countOpenByCategory(Carbon $start, Carbon $end): array
     {
         $pipeline = [
             [
                 '$match' => [
-
+                    'sync.in_current_list' => true,
                     'extracted.created_at' => [
                         '$gte' => $this->toUtc($start),
                         '$lte' => $this->toUtc($end),
@@ -64,7 +64,7 @@ final class MongoTicketsDashboardRepository implements TicketsDashboardRepositor
         $pipeline = [
             [
                 '$match' => [
-
+                    'sync.in_current_list' => true,
                     'extracted.created_at' => [
                         '$gte' => $this->toUtc($start),
                         '$lte' => $this->toUtc($end),
@@ -88,7 +88,7 @@ final class MongoTicketsDashboardRepository implements TicketsDashboardRepositor
         $pipeline = [
             [
                 '$match' => [
-
+                    'sync.in_current_list' => true,
                     'extracted.created_at' => [
                         '$gte' => $this->toUtc($start),
                         '$lt'  => $this->toUtc($end),

@@ -24,6 +24,7 @@ class TicketsOpenVsClosedUseCase
 
         $rawAgg = MongoTicketRaw::raw(function ($collection) use ($fromBson, $toBson, $companyId) {
             $match = [
+                'sync.in_current_list' => true,
                 '$or' => [
                     [self::CREATED_FIELD => ['$gte' => $fromBson, '$lte' => $toBson]],
                     [self::CLOSED_FIELD  => ['$gte' => $fromBson, '$lte' => $toBson]],
