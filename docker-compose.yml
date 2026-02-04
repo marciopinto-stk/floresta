@@ -32,7 +32,7 @@ services:
     volumes:
       - ./api:/var/www/html
     working_dir: /var/www/html
-    command: >
+    command: 
       sh -c "while true; do
         php artisan schedule:run;
         sleep 60;
