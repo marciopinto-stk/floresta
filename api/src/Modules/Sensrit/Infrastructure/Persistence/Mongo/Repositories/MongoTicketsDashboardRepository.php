@@ -142,7 +142,7 @@ final class MongoTicketsDashboardRepository implements TicketsDashboardRepositor
         return $out;
     }
 
-    private function toUtc(CarbonImmutable $date): UTCDateTime
+    private function toUtc(Carbon $date): UTCDateTime
     {
         return new UTCDateTime($date->getTimestamp() * 1000);
     }
