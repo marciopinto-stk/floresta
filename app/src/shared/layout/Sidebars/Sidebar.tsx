@@ -14,8 +14,9 @@ type SidebarProps = {
 
 type NavItem = {
   label: string;
-  href: string;
-  icon: string;
+  href?: string;        // agora pode não ter href (quando for "grupo")
+  icon?: string;
+  children?: NavItem[]; // novo nível
 };
 
 type NavSection = {
@@ -31,7 +32,7 @@ const sections: NavSection[] = [
     label: "HOME",
     icon: "tabler:home",
     items: [
-      {label: "Dashboard", href: "/dashboard", icon: "tabler:layout-dashboard"}
+      { label: "Dashboard", href: "/dashboard", icon: "tabler:layout-dashboard" }
     ]
   },
   {
@@ -39,7 +40,7 @@ const sections: NavSection[] = [
     label: "SENSRIT",
     icon: "tabler:bandage",
     items: [
-      {label: "Chamados", href: "/chamados", icon: "tabler:bandage"}
+      { label: "Chamados", href: "/chamados", icon: "tabler:bandage" }
     ]
   },
   {
@@ -47,7 +48,16 @@ const sections: NavSection[] = [
     label: "S2",
     icon: "tabler:medicine-syrup",
     items: [
-      {label: "Financeiro", href: "/s2/financeiro", icon: "tabler:pig-money"}
+      { label: "Financeiro", href: "/s2/financeiro", icon: "tabler:pig-money" },
+
+      // ✅ novo nível
+      {
+        label: "Médicos",
+        icon: "tabler:stethoscope",
+        children: [
+          { label: "Produtividade", href: "/s2/medicos/produtividade" },
+        ],
+      },
     ]
   },
   {
@@ -55,33 +65,67 @@ const sections: NavSection[] = [
     label: "YALO",
     icon: "tabler:basket",
     items: [
-      {label: "Clientes", href: "/yalo/clientes", icon: "tabler:layout-user"}
+      { label: "Clientes", href: "/yalo/clientes", icon: "tabler:layout-user" }
     ]
   }
 ];
 
-export default function Sidebar ({isOpen, onClose}: SidebarProps) {
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
 
+  function isActive(href: string) {
+    return pathname === href || pathname.startsWith(href + "/");
+  }
+
+  function hasActiveChild(item: NavItem): boolean {
+    if (!item.children?.length) return false;
+    return item.children.some((c) =>
+      c.href ? isActive(c.href) : hasActiveChild(c)
+    );
+  }
+
   const activeSectionKey = useMemo(() => {
-    const hit = sections.find((s) => s.items.some((i) => pathname === i.href || pathname.startsWith(i.href + "/")));
+    const hit = sections.find((s) =>
+      s.items.some((i) =>
+        i.href ? isActive(i.href) : hasActiveChild(i)
+      )
+    );
     return hit?.key ?? sections[0]?.key ?? "";
   }, [pathname]);
 
   // accordion: quais seções estão abertas
   const [openKeys, setOpenKeys] = useState<Record<string, boolean>>({});
 
+  // sub-accordion: quais grupos (por seção) estão abertos
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
   // auto-abre a seção do path atual
   useEffect(() => {
     setOpenKeys((prev) => ({ ...prev, [activeSectionKey]: true }));
   }, [activeSectionKey]);
 
-  function toogleSection(key: string) {
+  // auto-abre o grupo (ex: "Médicos") se algum filho estiver ativo
+  useEffect(() => {
+    const next: Record<string, boolean> = {};
+    for (const s of sections) {
+      for (const item of s.items) {
+        if (item.children?.length) {
+          const key = `${s.key}:${item.label}`;
+          if (hasActiveChild(item)) next[key] = true;
+        }
+      }
+    }
+    if (Object.keys(next).length) {
+      setOpenGroups((prev) => ({ ...prev, ...next }));
+    }
+  }, [pathname]);
+
+  function toggleSection(key: string) {
     setOpenKeys((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
-  function isActive(href: string) {
-    return pathname === href || pathname.startsWith(href + "/");
+  function toggleGroup(key: string) {
+    setOpenGroups((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
   return (
@@ -96,12 +140,12 @@ export default function Sidebar ({isOpen, onClose}: SidebarProps) {
         aria-hidden="true"
       />
 
-      <aside id="app-sidebar" 
+      <aside
+        id="app-sidebar"
         className={[
-          // layout
           "fixed left-0 top-0 z-50 h-dvh w-[270px] shrink-0 border-r border-black/10 bg-white",
           "transition-transform duration-300",
-          "xl:translate-x-0 xl-flex xl:flex-col",
+          "xl:translate-x-0 xl:flex xl:flex-col",
           isOpen ? "translate-x-0" : "-translate-x-full"
         ].join(" ")}
         aria-label="Sidebar"
@@ -126,8 +170,8 @@ export default function Sidebar ({isOpen, onClose}: SidebarProps) {
         <div className="flex-1 overflow-y-auto px-4 pb-6">
           <nav aria-label="Navegação principal" className="space-y-2">
             {sections.map((section) => {
-              const open        = !!openKeys[section.key];
-              const controlsId  = `sidebar-section-${section.key}`;
+              const open = !!openKeys[section.key];
+              const controlsId = `sidebar-section-${section.key}`;
 
               return (
                 <div key={section.key} className="rounded-[7px]">
@@ -138,7 +182,7 @@ export default function Sidebar ({isOpen, onClose}: SidebarProps) {
                       "w-full flex items-center justify-between px-3 py-2 rounded-[7px]",
                       "text-xs font-bold tracking-wide text-black/60 hover:bg-black/5",
                     ].join(" ")}
-                    onClick={() => toogleSection(section.key)}
+                    onClick={() => toggleSection(section.key)}
                     aria-expanded={open}
                     aria-controls={controlsId}
                   >
@@ -158,7 +202,7 @@ export default function Sidebar ({isOpen, onClose}: SidebarProps) {
 
                   {/* Accordion panel */}
                   <div
-                    id="{controlsId}"
+                    id={controlsId}
                     className={[
                       "grid transition-[grid-template-rows] duration-200",
                       open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
@@ -167,22 +211,96 @@ export default function Sidebar ({isOpen, onClose}: SidebarProps) {
                     <div className="overflow-hidden">
                       <ul className="mt-1 space-y-1 pl-1">
                         {section.items.map((item) => {
-                          const active = isActive(item.href);
+                          // item normal (link)
+                          if (item.href) {
+                            const active = isActive(item.href);
+
+                            return (
+                              <li key={item.href}>
+                                <Link
+                                  href={item.href}
+                                  onClick={onClose}
+                                  aria-current={active ? "page" : undefined}
+                                  className={[
+                                    "flex items-center gap-[15px] px-3 py-2 rounded-[7px] text-[14px] leading-[25px] transition-colors",
+                                    active
+                                      ? "bg-[var(--color-primary)] text-white"
+                                      : "text-black/80 hover:text-[var(--color-primary)] hover:bg-black/5",
+                                  ].join(" ")}
+                                >
+                                  {item.icon && <Icon icon={item.icon} className="text-xl" />}
+                                  <span>{item.label}</span>
+                                </Link>
+                              </li>
+                            );
+                          }
+
+                          // item grupo (submenu)
+                          const groupKey = `${section.key}:${item.label}`;
+                          const groupOpen = !!openGroups[groupKey];
+                          const groupActive = hasActiveChild(item);
 
                           return (
-                            <li key={item.href}>
-                              <Link
-                                href={item.href}
-                                onClick={onClose}
-                                aria-current={active ? "page" : undefined}
+                            <li key={groupKey} className="rounded-[7px]">
+                              <button
+                                type="button"
+                                onClick={() => toggleGroup(groupKey)}
+                                aria-expanded={groupOpen}
                                 className={[
-                                  "flex items-center gap-[15px] px-3 py-2 rounded-[7px] text-[14px] leading-[25px] transition-colors",
-                                  active ? "bg-[var(--color-primary)] text-white" : "text-black/80 hover:text-[var(--color-primary)] hover:bg-black/5",
+                                  "w-full flex items-center justify-between px-3 py-2 rounded-[7px] text-[14px] leading-[25px] transition-colors",
+                                  groupActive
+                                    ? "bg-[var(--color-primary)] text-white"
+                                    : "text-black/80 hover:text-[var(--color-primary)] hover:bg-black/5",
                                 ].join(" ")}
                               >
-                                {item.icon && <Icon icon={item.icon} className="text-xl" />}
-                                <span>{item.label}</span>
-                              </Link>
+                                <span className="flex items-center gap-[15px]">
+                                  {item.icon && <Icon icon={item.icon} className="text-xl" />}
+                                  <span>{item.label}</span>
+                                </span>
+
+                                <Icon
+                                  icon="tabler:chevron-down"
+                                  className={[
+                                    "text-lg transition-transform",
+                                    groupOpen ? "rotate-180" : "rotate-0",
+                                  ].join(" ")}
+                                />
+                              </button>
+
+                              <div
+                                className={[
+                                  "grid transition-[grid-template-rows] duration-200",
+                                  groupOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+                                ].join(" ")}
+                              >
+                                <div className="overflow-hidden">
+                                  <ul className="mt-1 space-y-1 pl-6">
+                                    {item.children?.map((child) => {
+                                      if (!child.href) return null;
+                                      const active = isActive(child.href);
+
+                                      return (
+                                        <li key={child.href}>
+                                          <Link
+                                            href={child.href}
+                                            onClick={onClose}
+                                            aria-current={active ? "page" : undefined}
+                                            className={[
+                                              "flex items-center gap-[15px] px-3 py-2 rounded-[7px] text-[14px] leading-[25px] transition-colors",
+                                              active
+                                                ? "bg-[var(--color-primary)] text-white"
+                                                : "text-black/80 hover:text-[var(--color-primary)] hover:bg-black/5",
+                                            ].join(" ")}
+                                          >
+                                            {child.icon && <Icon icon={child.icon} className="text-xl" />}
+                                            <span>{child.label}</span>
+                                          </Link>
+                                        </li>
+                                      );
+                                    })}
+                                  </ul>
+                                </div>
+                              </div>
                             </li>
                           );
                         })}

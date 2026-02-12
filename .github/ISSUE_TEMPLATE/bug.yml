@@ -1,0 +1,42 @@
+name: Bug
+description: Reportar um erro no sistema
+title: "BUG: "
+labels: ["bug"]
+body:
+  - type: input
+    id: module
+    attributes:
+      label: Módulo Afetado
+      placeholder: Ex: Medicos
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição do Problema
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passos para Reproduzir
+      placeholder: |
+        1. Acesse...
+        2. Clique em...
+        3. Erro ocorre...
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento Esperado
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Ambiente
+      placeholder: |
+        - OS:
+        - Browser:
+        - API version:

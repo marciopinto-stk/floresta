@@ -1,0 +1,47 @@
+name: EPIC
+description: Criar um EPIC para uma nova feature ou iniciativa
+title: "EPIC: "
+labels: ["enhancement"]
+body:
+  - type: input
+    id: module
+    attributes:
+      label: Módulo
+      placeholder: Ex: Medicos, Sensrit, Dashboard
+    validations:
+      required: true
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objetivo
+      description: Descreva o objetivo principal da feature.
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Escopo
+      description: Liste o que está incluído nesta feature.
+      placeholder: |
+        - Upload de CSV
+        - Validação
+        - Persistência
+    validations:
+      required: true
+
+  - type: textarea
+    id: related_docs
+    attributes:
+      label: Documentação Relacionada
+      placeholder: |
+        - RFXX
+        - US-XXX
+        - UC-XXX
+
+  - type: textarea
+    id: sub_issues
+    attributes:
+      label: Sub-Issues
+      description: Liste as tarefas que serão vinculadas posteriormente.
