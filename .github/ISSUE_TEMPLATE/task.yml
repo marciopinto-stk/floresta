@@ -1,6 +1,6 @@
 name: Task
 description: Criar uma tarefa técnica
-title: ""
+title: "TASK: "
 labels: []
 body:
   - type: input
