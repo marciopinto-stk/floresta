@@ -1,0 +1,60 @@
+name: Task
+description: Criar uma tarefa técnica
+title: ""
+labels: []
+body:
+  - type: input
+    id: module
+    attributes:
+      label: Módulo
+      placeholder: Ex: Medicos
+    validations:
+      required: true
+
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Camada
+      options:
+        - Backend
+        - Frontend
+        - Docs
+        - Infra
+    validations:
+      required: true
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objetivo
+      description: O que esta tarefa deve entregar?
+    validations:
+      required: true
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Checklist Técnico
+      placeholder: |
+        - [ ] Criar classe
+        - [ ] Implementar método
+        - [ ] Criar testes
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critério de Aceite
+      description: Como saber que está concluído?
+    validations:
+      required: true
+
+  - type: textarea
+    id: related
+    attributes:
+      label: Relacionado a
+      placeholder: |
+        - EPIC #xx
+        - RFXX
+        - UC-XXX
