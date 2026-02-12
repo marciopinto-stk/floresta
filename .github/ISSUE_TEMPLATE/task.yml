@@ -7,7 +7,7 @@ body:
     id: module
     attributes:
       label: Módulo
-      placeholder: Ex: Medicos
+      placeholder: "Ex: Medicos"
     validations:
       required: true
 
