@@ -1,0 +1,104 @@
+name: Move issues to In progress on commit refs
+
+on:
+  push:
+    branches-ignore:
+      - master
+
+jobs:
+  move:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Move referenced issues to In progress
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.PROJECTS_TOKEN }}
+          script: |
+            const PROJECT_ID = "PVT_kwHODkkEoM4BNKcM";
+            const STATUS_FIELD_ID = "PVTSSF_lAHODkkEoM4BNKcMzg8PPf8";
+            const IN_PROGRESS_OPTION_ID = "47fc9ee4";
+
+
+            const commits = (context.payload.commits || [])
+              .map(c => `${c.message}\n${c.body || ""}`)
+              .join("\n");
+
+            if (!commits.trim()) {
+              core.info("No commits in payload.");
+              return;
+            }
+
+            // Refs #123 / Ref #123
+            const refsRegex = /\brefs?\s+#(\d+)\b/ig;
+            const issueNumbers = new Set();
+            let m;
+            while ((m = refsRegex.exec(commits)) !== null) {
+              issueNumbers.add(parseInt(m[1], 10));
+            }
+
+            if (issueNumbers.size === 0) {
+              core.info("No 'Refs #<id>' found in commit messages.");
+              return;
+            }
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            async function getIssueNodeId(number) {
+              const res = await github.rest.issues.get({ owner, repo, issue_number: number });
+              return res.data.node_id;
+            }
+
+            async function findProjectItemId(issueNodeId) {
+              const query = `
+                query($issueId:ID!) {
+                  node(id:$issueId) {
+                    ... on Issue {
+                      projectItems(first:50) {
+                        nodes { id project { id } }
+                      }
+                    }
+                  }
+                }
+              `;
+              const data = await github.graphql(query, { issueId: issueNodeId });
+              const items = data.node.projectItems.nodes || [];
+              const item = items.find(i => i.project.id === PROJECT_ID);
+              return item?.id || null;
+            }
+
+            async function updateStatus(itemId, optionId) {
+              const mutation = `
+                mutation($projectId:ID!, $itemId:ID!, $fieldId:ID!, $optionId:String!) {
+                  updateProjectV2ItemFieldValue(input:{
+                    projectId:$projectId
+                    itemId:$itemId
+                    fieldId:$fieldId
+                    value:{ singleSelectOptionId:$optionId }
+                  }) { projectV2Item { id } }
+                }
+              `;
+              await github.graphql(mutation, {
+                projectId: PROJECT_ID,
+                itemId,
+                fieldId: STATUS_FIELD_ID,
+                optionId
+              });
+            }
+
+            for (const n of issueNumbers) {
+              try {
+                const issueNodeId = await getIssueNodeId(n);
+                const itemId = await findProjectItemId(issueNodeId);
+
+                if (!itemId) {
+                  core.info(`Issue #${n} is not in the project. Skipping.`);
+                  continue;
+                }
+
+                await updateStatus(itemId, IN_PROGRESS_OPTION_ID);
+                core.info(`Moved issue #${n} to In progress.`);
+              } catch (err) {
+                core.warning(`Failed moving issue #${n}: ${err.message}`);
+              }
+            }

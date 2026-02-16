@@ -1,0 +1,86 @@
+name: Move linked issues to In review on PR open
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, reopened]
+
+jobs:
+  move:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Move issues in Project to In review
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.PROJECTS_TOKEN }}
+          script: |
+            const PROJECT_ID          = "PVT_kwHODkkEoM4BNKcM";
+            const STATUS_FIELD_ID     = "PVTSSF_lAHODkkEoM4BNKcMzg8PPf8";
+            const IN_REVIEW_OPTION_ID = "df73e18b";
+
+
+            const pr    = context.payload.pull_request;
+            const owner = context.repo.owner;
+            const repo  = context.repo.repo;
+
+            const query = `
+              query($owner:String!, $repo:String!, $number:Int!) {
+                repository(owner:$owner, name:$repo) {
+                  pullRequest(number:$number) {
+                    closingIssuesReferences(first:20) {
+                      nodes { id number }
+                    }
+                  }
+                }
+              }
+            `;
+
+            const data = await github.graphql(query, { owner, repo, number: pr.number });
+            const issues = data.repository.pullRequest.closingIssuesReferences.nodes;
+
+            if (!issues.length) {
+              core.info("No closing issues found. Add 'Closes #<id>' in PR body.");
+              return;
+            }
+
+            for (const issue of issues) {
+              const findItemQuery = `
+                query($issueId:ID!) {
+                  node(id:$issueId) {
+                    ... on Issue {
+                      projectItems(first:50) {
+                        nodes { id project { id } }
+                      }
+                    }
+                  }
+                }
+              `;
+
+              const issueData = await github.graphql(findItemQuery, { issueId: issue.id });
+              const items = issueData.node.projectItems.nodes || [];
+
+              const item = items.find(i => i.project.id === PROJECT_ID);
+              if (!item) {
+                core.info(\`Issue #\${issue.number} not in this project. Skipping.\`);
+                continue;
+              }
+
+              const updateMutation = `
+                mutation($projectId:ID!, $itemId:ID!, $fieldId:ID!, $optionId:String!) {
+                  updateProjectV2ItemFieldValue(input:{
+                    projectId:$projectId
+                    itemId:$itemId
+                    fieldId:$fieldId
+                    value:{ singleSelectOptionId:$optionId }
+                  }) { projectV2Item { id } }
+                }
+              `;
+
+              await github.graphql(updateMutation, {
+                projectId: PROJECT_ID,
+                itemId: item.id,
+                fieldId: STATUS_FIELD_ID,
+                optionId: IN_REVIEW_OPTION_ID
+              });
+
+              core.info(\`Moved issue #\${issue.number} to In review.\`);
+            }
