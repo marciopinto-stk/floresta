@@ -10,12 +10,14 @@ use App\Modules\Medicos\Domain\Contracts\ParseMedicalProductivityCsvUseCaseContr
 use App\Modules\Medicos\Domain\Contracts\PersistMedicalProductivityRowUseCaseContract;
 use App\Modules\Medicos\Domain\Contracts\ValidateMedicalProductivityFileUseCaseContract;
 use App\Modules\Medicos\Domain\Contracts\ValidateMedicalProductivityRowUseCaseContract;
+use App\Modules\Medicos\Domain\Contracts\ValidateReferenceMonthUseCaseContract;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
 final class ImportMedicalProductivityOrchestratorUseCase
 {
     public function __construct(
+        private readonly ValidateReferenceMonthUseCaseContract $validateReferenceMonth,
         private readonly ValidateMedicalProductivityFileUseCaseContract $validateFile,
         private readonly LoggerInterface $logger,
         private readonly BuildImportReportUseCaseContract $buildReport,
@@ -37,6 +39,31 @@ final class ImportMedicalProductivityOrchestratorUseCase
             'executorId'        => $input->executor->id,
             'file'              => $input->originalFilename,
         ]);
+
+        // Valida mês de referência
+        try {
+            $this->logStep($report, 'validate_reference_month:start', 'info', 'Validando mês de referência', [
+                'monthReference' => $input->monthReference,
+            ]);
+
+            $month = $this->validateReferenceMonth->handle($input->monthReference);
+
+            $report->monthReference = $month->value();
+
+            $this->logStep($report, 'validate_reference_month:done', 'info', 'Mês de referência validado', [
+                'monthReference' => $report->monthReference,
+            ]);
+        } catch(Throwable $e) {
+            $this->logStep($report, 'validate_reference_month:error', 'error', 'Falha na validação do mês de referência', [
+                'exception'      => $e::class,
+                'message'        => $e->getMessage(),
+                'monthReference' => $input->monthReference,
+            ]);
+
+            $report->status = 'validation_failed';
+
+            return $this->buildReport->handle($report);
+        }
 
         // Validações iniciais do arquivo (extensão, tamanho, cabeçalho, etc.)
         try {
@@ -81,7 +108,7 @@ final class ImportMedicalProductivityOrchestratorUseCase
 
                 $this->logger->warning('Import produtividade: erro na linha', [
                     'line'              => $row->lineNumber,
-                    'monthReference'    => $input->monthReference,
+                    'monthReference'    => $report->monthReference,
                     'exception'         => $e::class,
                     'message'           => $e->getMessage(),
                 ]);
@@ -98,7 +125,7 @@ final class ImportMedicalProductivityOrchestratorUseCase
         if ($anyRowProcessed) {
             try {
                 $this->logStep($report, 'costs:start', 'info', 'Atualizando custos de produtividade');
-                $this->insertCosts->handle($input->monthReference);
+                $this->insertCosts->handle($report->monthReference);
                 $this->logStep($report, 'costs:done', 'info', 'Custos atualizados com sucesso');
             } catch(Throwable $e) {
                 $this->logStep($report, 'costs:error', 'error', 'Falha ao atualizar custos', [
