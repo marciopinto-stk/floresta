@@ -13,14 +13,13 @@ jobs:
         with:
           github-token: ${{ secrets.PROJECTS_TOKEN }}
           script: |
-            const PROJECT_ID          = "PVT_kwHODkkEoM4BNKcM";
-            const STATUS_FIELD_ID     = "PVTSSF_lAHODkkEoM4BNKcMzg8PPf8";
+            const PROJECT_ID = "PVT_kwHODkkEoM4BNKcM";
+            const STATUS_FIELD_ID = "PVTSSF_lAHODkkEoM4BNKcMzg8PPf8";
             const IN_REVIEW_OPTION_ID = "df73e18b";
 
-
-            const pr    = context.payload.pull_request;
+            const pr = context.payload.pull_request;
             const owner = context.repo.owner;
-            const repo  = context.repo.repo;
+            const repo = context.repo.repo;
 
             const query = `
               query($owner:String!, $repo:String!, $number:Int!) {
@@ -42,38 +41,38 @@ jobs:
               return;
             }
 
-            for (const issue of issues) {
-              const findItemQuery = `
-                query($issueId:ID!) {
-                  node(id:$issueId) {
-                    ... on Issue {
-                      projectItems(first:50) {
-                        nodes { id project { id } }
-                      }
+            const findItemQuery = `
+              query($issueId:ID!) {
+                node(id:$issueId) {
+                  ... on Issue {
+                    projectItems(first:50) {
+                      nodes { id project { id } }
                     }
                   }
                 }
-              `;
+              }
+            `;
 
+            const updateMutation = `
+              mutation($projectId:ID!, $itemId:ID!, $fieldId:ID!, $optionId:String!) {
+                updateProjectV2ItemFieldValue(input:{
+                  projectId:$projectId
+                  itemId:$itemId
+                  fieldId:$fieldId
+                  value:{ singleSelectOptionId:$optionId }
+                }) { projectV2Item { id } }
+              }
+            `;
+
+            for (const issue of issues) {
               const issueData = await github.graphql(findItemQuery, { issueId: issue.id });
               const items = issueData.node.projectItems.nodes || [];
 
               const item = items.find(i => i.project.id === PROJECT_ID);
               if (!item) {
-                core.info(\`Issue #\${issue.number} not in this project. Skipping.\`);
+                core.info("Issue #" + issue.number + " not in this project. Skipping.");
                 continue;
               }
-
-              const updateMutation = `
-                mutation($projectId:ID!, $itemId:ID!, $fieldId:ID!, $optionId:String!) {
-                  updateProjectV2ItemFieldValue(input:{
-                    projectId:$projectId
-                    itemId:$itemId
-                    fieldId:$fieldId
-                    value:{ singleSelectOptionId:$optionId }
-                  }) { projectV2Item { id } }
-                }
-              `;
 
               await github.graphql(updateMutation, {
                 projectId: PROJECT_ID,
@@ -82,5 +81,5 @@ jobs:
                 optionId: IN_REVIEW_OPTION_ID
               });
 
-              core.info(\`Moved issue #\${issue.number} to In review.\`);
+              core.info("Moved issue #" + issue.number + " to In review.");
             }
