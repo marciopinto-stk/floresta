@@ -13,5 +13,5 @@ interface ParseMedicalProductivityCsvUseCaseContract
      *
      * @return iterable<ParsedMedicalProductivityRowDTO>
      */
-    public function handle(ImportMedicalProductivityInputDTO $input): iterable;
+    public function handle(ImportMedicalProductivityInputDTO $input, ?callable $onROwError = null): iterable;
 }
