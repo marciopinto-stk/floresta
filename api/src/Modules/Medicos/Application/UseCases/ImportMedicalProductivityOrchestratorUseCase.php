@@ -86,7 +86,22 @@ final class ImportMedicalProductivityOrchestratorUseCase
 
         $anyRowProcessed = false;
 
-        foreach ($this->parseCsv->handle($input) as $row) {
+        foreach ($this->parseCsv->handle($input, function($err) use ($report) {
+            $report->total++;
+
+            $report->addError(
+                line: $err->line,
+                message: $err->message,
+                code: null,
+            );
+
+            $this->logStep($report, 'parse:row_error', 'warning', 'Erro no parsing da linha', [
+                'line'           => $err->line,
+                'monthReference' => $report->monthReference,
+                'message'        => $err->message,
+                'context'        => $err->context,
+            ]);
+        }) as $row) {
             $anyRowProcessed = true;
             $report->total++;
 
@@ -101,13 +116,13 @@ final class ImportMedicalProductivityOrchestratorUseCase
             } catch(Throwable $e) {
                 // Erro por linha não interrompe o processamento
                 $report->addError(
-                    line: $row->lineNumber,
+                    line: $row->line,
                     message: $e->getMessage(),
                     code: method_exists($e, 'getCode') ? (string)$e->getCode() : null,
                 );
 
                 $this->logger->warning('Import produtividade: erro na linha', [
-                    'line'              => $row->lineNumber,
+                    'line'              => $row->line,
                     'monthReference'    => $report->monthReference,
                     'exception'         => $e::class,
                     'message'           => $e->getMessage(),
