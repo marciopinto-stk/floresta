@@ -6,6 +6,7 @@ use App\Modules\Medicos\Application\DTO\ImportMedicalProductivityInputDTO;
 use App\Modules\Medicos\Application\DTO\ImportReportDTO;
 use App\Modules\Medicos\Domain\Contracts\BuildImportReportUseCaseContract;
 use App\Modules\Medicos\Domain\Contracts\InsertMedicalProductivityCostsUseCaseContract;
+use App\Modules\Medicos\Domain\Contracts\LoadProductivityExceptionsUseCaseContract;
 use App\Modules\Medicos\Domain\Contracts\ParseMedicalProductivityCsvUseCaseContract;
 use App\Modules\Medicos\Domain\Contracts\PersistMedicalProductivityRowUseCaseContract;
 use App\Modules\Medicos\Domain\Contracts\ValidateMedicalProductivityFileUseCaseContract;
