@@ -23,6 +23,7 @@ final class ImportMedicalProductivityOrchestratorUseCase
         private readonly BuildImportReportUseCaseContract $buildReport,
         private readonly ParseMedicalProductivityCsvUseCaseContract $parseCsv,
         private readonly ValidateMedicalProductivityRowUseCaseContract $validateRow,
+        private readonly LoadProductivityExceptionsUseCaseContract $loadExceptions,
         private readonly PersistMedicalProductivityRowUseCaseContract $persistRow,
         private readonly InsertMedicalProductivityCostsUseCaseContract $insertCosts,
     ) {}
@@ -79,6 +80,31 @@ final class ImportMedicalProductivityOrchestratorUseCase
              $report->status = 'validation_failed';
 
              return $this->buildReport->handle($report);
+        }
+
+        // Carrega exceções aplicáveis ao mês de referência (médico + produto)
+        try {
+            $this->logStep($report, 'excetions:load:start', 'info', 'Carregando exceções de produtividade', [
+                'mothReference' => $report->monthReference,
+            ]);
+
+            $input->monthReference = $report->monthReference;
+
+            $exceptions = $this->loadExceptions->handle($input);
+
+            $this->logStep($report, 'exceptions:load:done', 'info', 'Exceções carregadas com sucesso', [
+                'monthReference' => $exceptions->referenceMonth(),
+            ]);
+        } catch (Throwable $e) {
+            $this->logStep($report, 'exceptions:load:error', 'error', 'Falha ao carregar exceções', [
+                'exception'      => $e::class,
+                'message'        => $e->getMessage(),
+                'monthReference' => $report->monthReference,
+            ]);
+
+            $report->status = 'processing_failed';
+
+            return $this->buildReport->handle($report);
         }
 
         // Parsing + validação + persistencia por linha
