@@ -1,0 +1,78 @@
+<?php
+
+namespace App\MOdules\Medicos\Domain\Structures;
+
+final class ExceptionsSet
+{
+    private array $exact        = [];
+    private array $anyProduct   = [];
+
+    public function __construct(
+        private readonly string $referenceMonth,
+        private readonly string $defaultReason,
+    ) {}
+
+    public static function fromArray(string $referenceMonth, array $items, string $defaultReason = 'rejeitado por exceção'): self
+    {
+        $set = new self($referenceMonth, $defaultReason);
+
+        foreach($items as $item) {
+            $medico     = $item[ 'medico'] ?? null;
+            $produto    = $item['id_produto'] ?? null;
+
+            if (!is_int($medico) && !(is_string($medico) && ctype_digit($medico))) {
+                continue;
+            }
+
+            $medico = (int) $medico;
+            $reason = isset($item['reason']) && is_string($item[ 'reason']) && $item[ 'reason'] !== ''
+                ? $item[ 'reason']
+                : $defaultReason;
+
+            if ($produto === '*') {
+                $setanyProduct[$medico] = $reason;
+                continue;
+            }
+
+            $produto = (int) $produto;
+            $set->exact[$set->exactKey($usuario, $produto)] = $reason;
+        }
+
+        return $set;
+    }
+
+    public function referenceMonth(): string
+    {
+        return $this->referenceMonth;
+    }
+
+    public function matches(int $medico, int $idProduto): bool
+    {
+        return $this->check($medico, $idProduto)->matched;
+    }
+
+    public function reasonFor(int $medico, int $idProduto): ?string
+    {
+        return $this->check($medico, $idProduto)->reason;
+    }
+
+    public function check(int $medico, int $idProduto): ExceptionMatchResult
+    {
+        $key = $this->exactKey($medico, $idProduto);
+
+        if (isset($this->exact[$key])) {
+            return ExceptionMatchResult::yes($this->exact[$key]);
+        }
+
+        if (isset($this->anyProduct[$medico])) {
+            return ExceptionMatchResult::yes($this->anyProduct[$medico]);
+        }
+
+        return ExceptionMatchResult::no();
+    }
+
+    private function exactKey(int $medico, int $idProduto): string
+    {
+        return $medico . ':' . $idProduto;
+    }
+}
