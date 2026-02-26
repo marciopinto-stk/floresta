@@ -1,6 +1,6 @@
 <?php
 
-namespace App\MOdules\Medicos\Domain\Structures;
+namespace App\Modules\Medicos\Domain\Structures;
 
 final class ExceptionsSet
 {
@@ -35,7 +35,7 @@ final class ExceptionsSet
             }
 
             $produto = (int) $produto;
-            $set->exact[$set->exactKey($usuario, $produto)] = $reason;
+            $set->exact[$set->exactKey($medico, $produto)] = $reason;
         }
 
         return $set;

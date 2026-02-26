@@ -6,6 +6,7 @@ use App\Modules\Medicos\Application\DTO\ImportMedicalProductivityInputDTO;
 use App\Modules\Medicos\Application\DTO\ImportReportDTO;
 use App\Modules\Medicos\Domain\Contracts\BuildImportReportUseCaseContract;
 use App\Modules\Medicos\Domain\Contracts\InsertMedicalProductivityCostsUseCaseContract;
+use App\Modules\Medicos\Domain\Contracts\LoadProductivityExceptionsUseCaseContract;
 use App\Modules\Medicos\Domain\Contracts\ParseMedicalProductivityCsvUseCaseContract;
 use App\Modules\Medicos\Domain\Contracts\PersistMedicalProductivityRowUseCaseContract;
 use App\Modules\Medicos\Domain\Contracts\ValidateMedicalProductivityFileUseCaseContract;
@@ -142,14 +143,16 @@ final class ImportMedicalProductivityOrchestratorUseCase
             } catch(Throwable $e) {
                 // Erro por linha não interrompe o processamento
                 $report->addError(
-                    line: $row->line,
+                    line: $row->lineNumber,
                     message: $e->getMessage(),
                     code: method_exists($e, 'getCode') ? (string)$e->getCode() : null,
                 );
 
                 $this->logger->warning('Import produtividade: erro na linha', [
-                    'line'              => $row->line,
+                    'line'              => $row->lineNumber,
                     'monthReference'    => $report->monthReference,
+                    'id_recepcao_item'  => $row->id_recepcao_item ?? null,
+                    'id_produto'        => $row->id_produto ?? null,
                     'exception'         => $e::class,
                     'message'           => $e->getMessage(),
                 ]);

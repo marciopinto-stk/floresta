@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Medicos\DOmain\Structures;
+namespace App\Modules\Medicos\Domain\Structures;
 
 final class ExceptionMatchResult
 {
