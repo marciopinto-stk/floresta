@@ -143,14 +143,16 @@ final class ImportMedicalProductivityOrchestratorUseCase
             } catch(Throwable $e) {
                 // Erro por linha não interrompe o processamento
                 $report->addError(
-                    line: $row->line,
+                    line: $row->lineNumber,
                     message: $e->getMessage(),
                     code: method_exists($e, 'getCode') ? (string)$e->getCode() : null,
                 );
 
                 $this->logger->warning('Import produtividade: erro na linha', [
-                    'line'              => $row->line,
+                    'line'              => $row->lineNumber,
                     'monthReference'    => $report->monthReference,
+                    'id_recepcao_item'  => $row->id_recepcao_item ?? null,
+                    'id_produto'        => $row->id_produto ?? null,
                     'exception'         => $e::class,
                     'message'           => $e->getMessage(),
                 ]);

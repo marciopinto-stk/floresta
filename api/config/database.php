@@ -63,6 +63,26 @@ return [
             ]) : [],
         ],
 
+        'S2' => [
+            'driver' => 'mysql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '3306'),
+            'database' => env('S2_DATABASE', 'laravel'),
+            'username' => env('S2_USERNAME', 'root'),
+            'password' => env('S2_PASSWORD', ''),
+            'unix_socket' => env('S2B_SOCKET', ''),
+            'charset' => env('S2_CHARSET', 'utf8mb4'),
+            'collation' => env('S2_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                (PHP_VERSION_ID >= 80500 ? \Pdo\Mysql::ATTR_SSL_CA : \PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
