@@ -17,8 +17,8 @@ final class ProdutividadeImportRequest extends FormRequest
     {
         return [
             'file'              => ['required', 'file', 'mimes:csv,txt', 'max:20480'], // 20MB
-            //'competencia'       => ['nullable', 'date_format: Y-m'],
-            //'dry-run'           => ['nullable', 'boolean'],
+            'competencia'       => ['nullable', 'date_format:Y-m'],
+            'dry-run'           => ['nullable', 'boolean'],
             //'indempotency_key'  => ['nullable', 'string', 'max:120'],
         ];
     }

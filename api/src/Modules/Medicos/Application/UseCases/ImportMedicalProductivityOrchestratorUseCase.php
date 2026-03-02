@@ -18,19 +18,21 @@ use Throwable;
 final class ImportMedicalProductivityOrchestratorUseCase
 {
     public function __construct(
-        private readonly ValidateReferenceMonthUseCaseContract $validateReferenceMonth,
-        private readonly ValidateMedicalProductivityFileUseCaseContract $validateFile,
         private readonly LoggerInterface $logger,
         private readonly BuildImportReportUseCaseContract $buildReport,
-        private readonly ParseMedicalProductivityCsvUseCaseContract $parseCsv,
-        private readonly ValidateMedicalProductivityRowUseCaseContract $validateRow,
+        private readonly ValidateReferenceMonthUseCaseContract $validateReferenceMonth,
+        private readonly ValidateMedicalProductivityFileUseCaseContract $validateFile,
         private readonly LoadProductivityExceptionsUseCaseContract $loadExceptions,
-        private readonly PersistMedicalProductivityRowUseCaseContract $persistRow,
-        private readonly InsertMedicalProductivityCostsUseCaseContract $insertCosts,
+        //private readonly ParseMedicalProductivityCsvUseCaseContract $parseCsv,
+        //private readonly ValidateMedicalProductivityRowUseCaseContract $validateRow,
+        //
+        //private readonly PersistMedicalProductivityRowUseCaseContract $persistRow,
+        //private readonly InsertMedicalProductivityCostsUseCaseContract $insertCosts,
     ) {}
 
     public function handle(ImportMedicalProductivityInputDTO $input): ImportReportDTO
     {
+
         $report = new ImportReportDTO(
             status: 'processing',
             monthReference: $input->monthReference,
@@ -85,28 +87,28 @@ final class ImportMedicalProductivityOrchestratorUseCase
 
         // Carrega exceções aplicáveis ao mês de referência (médico + produto)
         try {
-            $this->logStep($report, 'excetions:load:start', 'info', 'Carregando exceções de produtividade', [
-                'mothReference' => $report->monthReference,
+            $this->logStep($report, 'exceptions:load:start', 'info', 'Carregando exceções de produtividade', [
+                'received' => is_array($input->exceptions ?? null) ? count ($input->exceptions) : 0,
             ]);
 
-            $input->monthReference = $report->monthReference;
-
-            $exceptions = $this->loadExceptions->handle($input);
+            $exceptionsSet = $this->loadExceptions->handle($input);
 
             $this->logStep($report, 'exceptions:load:done', 'info', 'Exceções carregadas com sucesso', [
-                'monthReference' => $exceptions->referenceMonth(),
+                'total' => $exceptionsSet->count(),
             ]);
         } catch (Throwable $e) {
             $this->logStep($report, 'exceptions:load:error', 'error', 'Falha ao carregar exceções', [
                 'exception'      => $e::class,
                 'message'        => $e->getMessage(),
-                'monthReference' => $report->monthReference,
             ]);
 
             $report->status = 'processing_failed';
 
             return $this->buildReport->handle($report);
         }
+
+        return $this->buildReport->handle($report);
+        dd($report);
 
         // Parsing + validação + persistencia por linha
         $this->logStep($report, 'parse:start', 'info', 'Iniciando parsing do CSV');

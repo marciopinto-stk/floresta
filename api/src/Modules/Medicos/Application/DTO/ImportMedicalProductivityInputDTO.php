@@ -9,5 +9,7 @@ final readonly class ImportMedicalProductivityInputDTO
         public string $uploadedFilePath,
         public ExecutorUserDTO $executor,
         public ?string $originalFilename = null,
+        public ?array $exceptions,
+        public bool $dryRun = false,
     ) {}
 }

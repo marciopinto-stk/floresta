@@ -2,51 +2,64 @@
 
 namespace App\Modules\Medicos\Interface\Http\Controllers;
 
-use App\Modules\Medicos\Infrastructure\Csv\ProdutividadeCsvValidator;
+use App\Modules\Medicos\Application\DTO\ExecutorUserDTO;
+use App\Modules\Medicos\Application\DTO\ImportMedicalProductivityInputDTO;
+use App\Modules\Medicos\Application\UseCases\ImportMedicalProductivityOrchestratorUseCase;
 use App\Modules\Medicos\Interface\Http\Requests\ProdutividadeImportRequest;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 
 final class ProdutividadeImportController {
     public function __construct(
-        private readonly ProdutividadeCsvValidator $validator,
-        //private readonly ImportarProdutividadeUseCase $useCase
+        private readonly ImportMedicalProductivityOrchestratorUseCase $orchestrator,
     ) {}
 
-    public function validateFile(ProdutividadeImportRequest $request): JsonResponse
+    public function import(ProdutividadeImportRequest $request)
     {
-        $file   = $request->file('file');
+        $file = $request->file('file');
 
-        logger()->info('PHP-FPM INI CHECK', [
-    'upload_max_filesize' => ini_get('upload_max_filesize'),
-    'post_max_size' => ini_get('post_max_size'),
-    'memory_limit' => ini_get('memory_limit'),
-    'max_input_time' => ini_get('max_input_time'),
-    'max_execution_time' => ini_get('max_execution_time'),
-]);
+        $originalExt = strtolower((string) $file->getClientOriginalExtension());
+        $ext    = $originalExt !== '' ? $originalExt : 'csv';
+        $base   = pathinfo($file->hashName(), PATHINFO_FILENAME);
+        $stored = $file->storeAs('imports', $base . '.' . $ext);
 
-logger()->info('FILES RAW', [
-    'php_files' => $_FILES ?? null,
-    'content_length' => $_SERVER['CONTENT_LENGTH'] ?? null,
-    'content_type' => $_SERVER['CONTENT_TYPE'] ?? null,
-]);
-        $report = $this->validator->validate($file);
-        $status = $report['ok'] ? 200 : 422;
+        // enquanto não existe usuario logado
+        $executor = new ExecutorUserDTO(
+            id: 0,
+            name: 'system-import'
+        );
+        // Quando o login for implementado
+        // $executor = new ExecutorUserDTO(
+        //     id: $request->user()->id,
+        //     name: $request->user()->name,
+        //     type: 'user'
+        // );
 
-        return response()->json($report, $status);
+        $competencia    = $request->competencia();
+        $exceptionsRaw  = $request->input('exceptions', '[]');
+        $exceptions     = is_string($exceptionsRaw)
+            ? json_decode($exceptionsRaw, true) ?? []
+            : (is_array($exceptionsRaw) ? $exceptionsRaw : []);
 
-    }
-    /*
-    public function store(ProdutividadeImportRequest $request): JsonResponse
-    {
-        $result = $this->useCase->execute(
-            file: $request->file('file'),
-            competencia: $request->competencia(),
+        $input = new ImportMedicalProductivityInputDTO(
+            monthReference: (string) ($competencia ?? ''),
+            uploadedFilePath: Storage::disk('local')->path($stored),
+            executor: $executor,
+            originalFilename: $file->getClientOriginalName(),
             dryRun: $request->dryRun(),
-            indempotencyKey: $request->idempotencyKey(),
-            userId: (int) optional($request->user())->id,
+            exceptions: $exceptions,
         );
 
-        return response()->json($result, 201);
+        $report = $this->orchestrator->handle($input);
+
+        $httpStatus = match ($report->status ?? null) {
+            'validation_failed' => 422,
+            'processing_failed' => 500,
+            default => 200,
+        };
+
+        return response()->json([
+            'ok' => ($report->status ?? null) !== 'validation_failed',
+            'data' => $report,
+        ], $httpStatus);
     }
-        */
 }
