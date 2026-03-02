@@ -127,6 +127,12 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'produtividade_medica' => [
+            'driver' => 'daily',
+            'path'   => storage_path('logs/produtividade-medica.log'),
+            'level'  => env('LOG_PRODUTIVIDADE_LEVEL', 'debug'),
+            'days'   => env('LOG_PRODUTIVIDADE_DAYS', 14),
+        ],
     ],
 
 ];

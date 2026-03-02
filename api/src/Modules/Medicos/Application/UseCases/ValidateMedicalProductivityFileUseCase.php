@@ -11,56 +11,49 @@ final class ValidateMedicalProductivityFileUseCase implements ValidateMedicalPro
 {
     public function handle(ImportMedicalProductivityInputDTO $input): void
     {
-        $file = $input->file ?? null;
+        $path = $input->uploadedFilePath ?? null;
 
-        if (!$file instanceof UploadedFile) {
+        if (!is_string($path) || trim($path) === '') {
+            throw ValidationException::withMessages([
+                'file' => ['Arquivo inválido: caminho do arquivo ausente.'],
+            ]);
+        }
+
+        if (!file_exists($path) || !is_file($path)) {
             throw ValidationException::withMessages([
                 'file' => ['Arquivo inválido: nenhum arquivo foi enviado.'],
             ]);
         }
 
-        if (!$file->isValid()) {
-            throw ValidationException::withMessages([
-                'file' => ['The file failed to upload'],
-            ]);
-        }
-
-        $this->validateExtensionAndMime($file);
-        $this->validateMaxSize($file);
-        $this->validateNotEmpty($file);
-        $this->validateRequiredHeaders($file);
+        $this->validateExtension($path);
+        $this->validateMaxSize($path);
+        $this->validateNotEmpty($path);
+        $this->validateRequiredHeaders($path);
     }
 
-    private function validateExtensionAndMime(UploadedFile $file): void
+    private function validateExtension(string $path): void
     {
-        $ext    = strtolower((string) $file->getClientOriginalExtension());
-        $mime   = strtolower((string) $file->getMimeType());
+        $ext    = strtolower((string) pathinfo($path, PATHINFO_EXTENSION));
 
-        // CSV costuma variar (dependendo do SO/cliente):
-        // - text/csv (ideal)
-        // - text/plain
-        // - application/vnd.ms-excel (comum em uploads do Windows/Excel)
-        $allowedMimes = ['text/csv', 'text/plain', 'application/vnd.ms-excel'];
-
-        if ($ext !== 'csv') {
+        if (!in_array($ext, ['csv', 'txt'], true)) {
             throw ValidationException::withMessages([
                 'file' => ['Arquivo inválido: envie um arquivo .csv.'],
             ]);
         }
-
-        // caso seja enviado o mime vazio, não vamos bloquear
-        if ($mime !== '' && !in_array($mime, $allowedMimes, true)) {
-            throw ValidationException::withMessages([
-                'file' => ['Arquivo inválido: tipo MIME não suportado para CSV.'],
-            ]);
-        }
     }
 
-    private function validateMaxSize(UploadedFile $file): void
+    private function validateMaxSize(string $path): void
     {
-        $maxKb      = (int) config('medicos.productivity.max_upload_kb', 2048);
-        $sizeBytes  = (int) $file->getSize();
-        $sizeKb     = (int) ceil($sizeBytes / 1024);
+        $maxKb      = (int) config('medicos.productivity.max_upload_kb', 20480);
+        $sizeBytes  = filesize($path);
+
+        if ($sizeBytes === false) {
+            throw ValidationException::withMessages([
+                'file' => ["Não foi possível ler o tamanho do arquivo."],
+            ]);
+        }
+
+        $sizeKb = (int) ceil($sizeBytes / 1024);
 
         if ($sizeBytes > 0 && $sizeKb > $maxKb) {
             throw ValidationException::withMessages([
@@ -69,15 +62,17 @@ final class ValidateMedicalProductivityFileUseCase implements ValidateMedicalPro
         }
     }
 
-    private function validateNotEmpty(UploadedFile $file): void
+    private function validateNotEmpty(string $path): void
     {
-        if ((int) $file->getSize() === 0) {
+        $size = filesize($path);
+
+        if ($size === false || (int) $size === 0) {
             throw ValidationException::withMessages([
                 'file' => ['Arquivo vazio: o CSV não possui conteúdo.'],
             ]);
         }
 
-        $handle = fopen($file->getRealPath(), 'rb');
+        $handle = fopen($path, 'rb');
         if ($handle === false) {
             throw ValidationException::withMessages([
                 'file' => ['Não foi possível ler o arquivo enviado.'],
@@ -94,18 +89,17 @@ final class ValidateMedicalProductivityFileUseCase implements ValidateMedicalPro
         }
     }
 
-    private function validateRequiredHeaders(UploadedFile $file): void
+    private function validateRequiredHeaders(string $path): void
     {
         $delimiter = (string) config('medicos.productivity.delimiter', ';');
 
-        // Pelo UC, essas são as mínimas para processar produtividade
         $requiredHeaders = (array) config('medicos.productivity.required_headers', [
             'AccessionNumber',
             'DataLaudo',
             'ProfissionalIdS2',
         ]);
 
-        $fh = fopen($file->getRealPath(), 'rb');
+        $fh = fopen($path, 'rb');
         if ($fh === false) {
             throw ValidationException::withMessages([
                 'file' => ['Não foi possível ler o arquivo enviado.'],
@@ -121,7 +115,6 @@ final class ValidateMedicalProductivityFileUseCase implements ValidateMedicalPro
             ]);
         }
 
-        // Normaliza: trim + remove BOM UTF-8 do primeiro campo
         $header = array_map(static fn ($v) => trim((string) $v), $header);
         if (isset($header[0])) {
             $header[0] = preg_replace('/^\xEF\xBB\xBF/', '', $header[0]) ?? $header[0];
