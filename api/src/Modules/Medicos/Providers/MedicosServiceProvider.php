@@ -10,10 +10,12 @@ use App\Modules\Medicos\Application\UseCases\ValidateMedicalProductivityFileUseC
 use App\Modules\Medicos\Application\UseCases\ValidateReferenceMonthUseCase;
 use App\Modules\Medicos\Domain\Contracts\BuildImportReportUseCaseContract;
 use App\Modules\Medicos\Domain\Contracts\LoadProductivityExceptionsUseCaseContract;
+use App\Modules\Medicos\Domain\Contracts\Repositories\MedicosOptionsRepositoryContract;
 use App\Modules\Medicos\Domain\Contracts\Repositories\ResolveProductFromRecepcaoItemRepositoryContract;
 use App\Modules\Medicos\Domain\Contracts\ResolveProductFromRecepcaoItemUseCaseContract;
 use App\Modules\Medicos\Domain\Contracts\ValidateMedicalProductivityFileUseCaseContract;
 use App\Modules\Medicos\Domain\Contracts\ValidateReferenceMonthUseCaseContract;
+use App\Modules\Medicos\Infrastructure\Repositories\MedicosOptionsRepository;
 use App\Modules\Medicos\Infrastructure\Repositories\ResolveProductFromRecepcaoItemRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -31,6 +33,7 @@ final class MedicosServiceProvider extends ServiceProvider
         $this->app->bind(LoadProductivityExceptionsUseCaseContract::class, LoadProductivityExceptionsUseCase::class);
         $this->app->bind(ResolveProductFromRecepcaoItemUseCaseContract::class, ResolveProductFromRecepcaoItemUseCase::class);
         $this->app->bind(ResolveProductFromRecepcaoItemRepositoryContract::class, ResolveProductFromRecepcaoItemRepository::class);
+        $this->app->bind(MedicosOptionsRepositoryContract::class, MedicosOptionsRepository::class);
 
         $this->app->when(ResolveProductFromRecepcaoItemRepository::class)
             ->needs(\Illuminate\Database\ConnectionInterface::class)

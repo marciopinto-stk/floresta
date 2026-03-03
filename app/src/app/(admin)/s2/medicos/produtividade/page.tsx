@@ -1,7 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { validateProdutividadeFile, ProdutividadeFileUploadResponse } from "@/lib/medicos";
+import { validateProdutividadeFile, ProdutividadeFileUploadResponse, searchMedicos } from "@/lib/medicos";
+import PageHeader from "@/shared/layout/Headers/PageHeader";
+import Autocomplete from "@/shared/layout/Forms/Autocomplete";
+import { OptionItem } from "@/shared/layout/Forms/types";
 
 
 function formatBytes(bytes: number) {
@@ -18,6 +21,8 @@ export default function MedicosImportarPage() {
   const [isSending, setIsSending] = useState(false);
   const [result, setResult] = useState<ProdutividadeFileUploadResponse | null>(null);
   const [clientError, setClientError] = useState<string | null>(null);
+
+  const[selectedMedico, setSelectedMedico] = useState<OptionItem | null>(null);
 
   const fileInfo = useMemo(() => {
     if (!file) return null;
@@ -57,71 +62,112 @@ export default function MedicosImportarPage() {
   }
 
   return (
-    <div className="p-6">
-      
-      <div className="card bg-white">
-        <div className="card-body p-6">
-          <h1 className="text-xl font-semibold">Importar Produtividade Médica</h1>
-          <p className="text-sm opacity-70 mt-1">
-            Envie um arquivo para validação. O sistema não importa ainda — apenas valida.
-          </p>
+    <div className="w-full items-stretch">
+      <PageHeader 
+        title="Importação de Produtividade Médica"
+        subtitle="Importe o arquivo de produtividade médica (Laudos Proradis)."
+      />
+      <div className="grid grid-cols-12 gap-6 items-stretch">
+        <div className="lg:col-span-5 col-span-12">
+          <div className="card h-full">
+            <div className="p-8">
+              <h5 className="card-title">Formulário de envio</h5>
+              <p className="card-subtitle">Envie aqui o arquivo .csv e adicione as exceções a serem excluídas da importação.</p>
+              <form onSubmit={onSubmit} className="mt-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 pb-4">
+                  <div className="md:col-span-8">
+                    <label className="block text-sm font-medium mb-2">Arquivo</label>
+                    <input
+                      type="file"
+                      onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                      className="form-control-file"
+                    />
 
-          <form onSubmit={onSubmit} className="mt-6 space-y-4">
-            <label className="block text-sm font-medium mb-2">Arquivo</label>
-            <input
-              type="file"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-gray-500
-                                    file:me-4 file:py-2 file:px-4
-                                    file:rounded-md file:border-0
-                                    file:text-sm file:font-semibold
-                                    file:bg-primary file:text-white
-                                    hover:file:bg-primaryemphasis
-                                    file:disabled:opacity-50 file:disabled:pointer-events-none
-                                    dark:file:bg-primary
-                                    dark:hover:file:bg-primary
-                                  "
-            />
+                    {clientError && (
+                      <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                        {clientError}
+                      </div>
+                    )}
+                  </div>
 
-            {fileInfo && (
-              <div className="mt-3 text-sm opacity-80">
-                <div><span className="font-medium">Nome:</span> {fileInfo.name}</div>
-                <div><span className="font-medium">Tamanho:</span> {fileInfo.size}</div>
-                <div><span className="font-medium">Tipo:</span> {fileInfo.type}</div>
-              </div>
-            )}
+                  <div className="md:col-span-4">
+                    <label className="block text-sm font-medium mb-2">Mês de referência</label>
+                    <input
+                      type="month"
+                      
+                      className="form-control"
+                    />
+                  </div>
+                </div>
 
-            {clientError && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                {clientError}
-              </div>
-            )}
+                <div>
+                  <div>
+                    <div className="text-sm font-medium">Exceções (médico-produto)</div>
+                    <div className="text-xs opacity-70">
+                      Pares que devem ser desconsiderados durante a importação.
+                    </div>
+                  </div>
 
-            <div className="flex items-center gap-3">
-              <button
-                type="submit"
-                disabled={isSending}
-                className="px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white disabled:opacity-60"
-              >
-                {isSending ? "Validando..." : "Validar arquivo"}
-              </button>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]">
+                    <Autocomplete
+                      label = "Médico"
+                      value = {selectedMedico}
+                      onChange = {setSelectedMedico}
+                      search={searchMedicos}
+                    />
 
-              <button
-                type="button"
-                onClick={() => {
-                  setFile(null);
-                  setResult(null);
-                  setClientError(null);
-                }}
-                disabled={isSending}
-                className="px-4 py-2 rounded-xl border disabled:opacity-60"
-              >
-                Limpar
-              </button>
+                    <select className="form-control">
+                      <option value="">Produto</option>
+                    </select>
+                    
+                    <button
+                      type="button"
+                      className="btn btn-primary w-fit cursor-pointer sm:justify-self-end bg-cyan-600 hover:bg-cyan-800"
+                      
+                    >
+                      +
+                    </button>
+                    
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="submit"
+                    disabled={isSending}
+                    className="px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white disabled:opacity-60"
+                  >
+                    {isSending ? "Enviando..." : "Importar"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFile(null);
+                      setResult(null);
+                      setClientError(null);
+                    }}
+                    disabled={isSending}
+                    className="px-4 py-2 rounded-xl border disabled:opacity-60"
+                  >
+                    Limpar
+                  </button>
+                </div>
+              </form>
             </div>
-          </form>
+          </div>
+        </div>
+
+        <div className="lg:col-span-7 col-span-12">
+          <div className="card h-full">
+            <div className="p-8">
+              <h5 className="card-title">Relatório de Importação</h5>
+            </div>
+          </div>
         </div>
       </div>
+      
     </div>
+    
   );
 }

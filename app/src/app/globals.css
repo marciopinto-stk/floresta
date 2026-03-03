@@ -139,7 +139,8 @@ body {
 
 /* FORMS */
 @layer components {
-  .form-control {
+  .form-control,
+  .form-control-file {
     @apply w-full bg-transparent
            focus:outline-none
            focus:border-slate-100
@@ -152,6 +153,21 @@ body {
 
     padding-block: calc(var(--spacing) * 2);
     padding-inline: calc(var(--spacing) * 3);
+  }
+
+  .form-control-file {
+    @apply  cursor-pointer
+            border
+            file:hover:bg-cyan-800
+            file:bg-cyan-600
+            file:text-white
+            file:border-0
+            file:me-4
+            file:py-2.5
+            file:px-4;
+
+    padding-block: 0;
+    padding-inline: 0;
   }
 
 }

@@ -58,6 +58,25 @@ async function requestForm<T>(path:string, options: RequestInit = {}): Promise<T
   return (payload ?? (await res.json())) as T;
 }
 
+function withQuery(path: string, query?: Record<string, string | number | undefined | null>) {
+  if (!query) {
+    return path;
+  }
+
+  const params = new URLSearchParams();
+  for (const[k,v] of Object.entries(query)) {
+    if (v === undefined || v === null || v === "") {
+      continue;
+    }
+
+    params.set(k, String(v));
+  }
+
+  const qs = params.toString();
+  return qs ? `${path}?${qs}` : path;
+}
+
+
 export const api = {
   get: <T>(path: string) => request<T>(path),
 
@@ -78,4 +97,7 @@ export const api = {
       method: "POST",
       body: formData,
     }),
+
+  getWithQuery: <T>(path: string, query: Record<string, string | number | undefined | null>) =>
+    request<T>(withQuery(path, query)),
 };
