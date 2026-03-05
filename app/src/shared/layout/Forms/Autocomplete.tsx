@@ -37,10 +37,12 @@ export default function Autocomplete({
 	const [error, setError]             = useState<string | null>(null);
 	const [activeIndex, setActiveIndex] = useState(-1);
 	const [page, setPage]               = useState(1);
-	const[hasNext, setHasNext]          = useState(false);
+	const [hasNext, setHasNext]         = useState(false);
 	
 	const rootRef = useRef<HTMLDivElement | null>(null);
 	const canSearch = useMemo(() =>query.trim().length >= minChars, [query, minChars]);
+
+	const inputRef = useRef<HTMLInputElement | null>(null);
 
 	// Fecha se clicar fora
 	useEffect(() => {
@@ -63,9 +65,19 @@ export default function Autocomplete({
 		setQuery(value?.label ?? "");
 	}, [value?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+
 	// busca com debounce
 	useEffect(() => {
 		setError(null);
+
+		if (value && query.trim() === value.label) {
+			setOpen(false);
+			setItems([]);
+			setActiveIndex(-1);
+			setPage(1);
+			setHasNext(false);
+			return;
+		}
 
 		if (!canSearch) {
 			setItems([]);
@@ -104,6 +116,10 @@ export default function Autocomplete({
     setOpen(false);
     setItems([]);
     setActiveIndex(-1);
+		setHasNext(false);
+		setPage(1);
+
+		requestAnimationFrame(() => inputRef.current?.blur());
   }
 
   function clear() {
@@ -158,6 +174,7 @@ export default function Autocomplete({
 
       <div className="flex gap-2">
         <input
+					ref={inputRef}
           value={query}
           onChange={(e) => {
             const v = e.target.value;
@@ -201,7 +218,7 @@ export default function Autocomplete({
                 type="button"
                 onClick={loadMore}
                 disabled={loading}
-                className="w-full rounded-lg border px-3 py-2 text-sm hover:bg-gray-50 disabled:opacity-60"
+                className="w-full px-3 py-2 text-sm hover:bg-gray-50 disabled:opacity-60"
               >
                 {loading ? "Carregando…" : "Carregar mais"}
               </button>
