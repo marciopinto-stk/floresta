@@ -8,6 +8,7 @@ import { OptionItem } from "@/shared/layout/Forms/types";
 import { searchProdutos } from "@/lib/options/produtos";
 import { Icon } from "@iconify/react";
 import { searchMedicos } from "@/lib/options/medicos";
+import ImportTraceAccordion from "@/shared/components/medicos/ImportTraceAccordion";
 
 
 
@@ -248,6 +249,11 @@ export default function MedicosImportarPage() {
           <div className="card h-full">
             <div className="p-8">
               <h5 className="card-title">Relatório de Importação</h5>
+              {result?.data?.logs && (
+                <div className="mt-6">
+                  <ImportTraceAccordion logs={result.data.logs} />
+                </div>
+              )}
             </div>
           </div>
         </div>
